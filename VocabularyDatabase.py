@@ -108,9 +108,12 @@ class VocabularyDatabase:
         self.conn.close()
 
 def main():
+    last_book_name = ''
+
     db = VocabularyDatabase()
 
-    commands = '\n - ADD [BookName] - [vocab_language1] - [vocab_language2] - [definition] \n - Q [BookName] [vocab] ' \
+    commands = '\n - ADD - [vocab_language1] - [vocab_language2] - [definition] {Puts into last used book}' \
+               '\n - ADDD - [BookName] - [vocab_language1] - [vocab_language2] - [definition] \n - Q [BookName] [vocab] ' \
                '\n - QBOOKS \n - ADDBOOK [BookName] [language1] [language2] [description] \n - EXIT \n - HELP '
     first = True
     while True:
@@ -122,7 +125,17 @@ def main():
             command = input('\nEnter a command, or type HELP for a list of commands. \n').strip()
         parts = command.split()
 
-        if parts[0] == 'ADD' and len(parts) >= 5:
+        if parts[0] == 'ADD' and len(parts) >= 4:
+            input_data = ' '.join(parts[1:])  # Combine all parts except the command
+            parts = [p.strip() for p in input_data.split('-')]
+
+            book_name = last_book_name
+            vocab_language1 = parts[1]
+            vocab_language2 = parts[2]
+            definition = ' '.join(parts[3:])
+            db.add_vocab(book_name, vocab_language1, vocab_language2, definition)
+
+        if parts[0] == 'ADDD' and len(parts) >= 5:
             input_data = ' '.join(parts[1:])  # Combine all parts except the command
             parts = [p.strip() for p in input_data.split('-')]
 
@@ -131,6 +144,7 @@ def main():
             vocab_language2 = parts[3]
             definition = ' '.join(parts[4:])
             db.add_vocab(book_name, vocab_language1, vocab_language2, definition)
+            last_book_name = book_name
 
         elif parts[0] == 'QBOOKS':
             db.get_books()
