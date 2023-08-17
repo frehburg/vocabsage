@@ -40,6 +40,7 @@ class VocabularyDatabase:
             'INSERT INTO Books (name, language1, language2, description) VALUES (?, ?, ?, ?)',
             (name, language1, language2, description))
         self.conn.commit()
+        print(f'Book {name} added successfully.')
 
 
     def get_book_id(self, book_name):
@@ -81,7 +82,7 @@ class VocabularyDatabase:
         return self.results_to_df(column_names, results)
 
 
-    def results_to_df(self, column_names, results, verbose=True):
+    def results_to_df(self, column_names=[], results=[], verbose=True):
         df = pd.DataFrame(results, columns=column_names[0])
         if verbose:
             if results:
@@ -91,20 +92,64 @@ class VocabularyDatabase:
         return results
 
 
+    def get_books(self):
+        cursor = self.conn.cursor()
+        cursor.execute('''SELECT Book_ID, name, language1, language2 FROM Books''')
+        books = cursor.fetchall()
+        return self.results_to_df(results=books)
+
+
     def close(self):
         self.conn.close()
 
-if __name__ == '__main__':
+def main():
     db = VocabularyDatabase()
 
-    db.add_book('ENSP', 'English', 'Spanish', 'Spanish Class Madrid B1')
-    db.add_vocab('ENSP', 'apple', 'manzana')
-    db.add_vocab('ENSP', 'thisiswrong', 'manzana')
-    db.add_vocab('ENSP', 'penapple', 'bolimanzana')
-    db.add_vocab('ENSP', 'applepen', 'manzanaboli')
-    db.add_vocab('ENSP', 'banana apple', 'plátano manzana')
-    db.add_vocab('ENSP', 'dog', 'perro')
+    commands = '\n - ADD [BookName] [vocab_language1] [vocab_language2] [definition] \n - Q [BookName] [vocab] ' \
+               '\n - QBOOKS \n - ADDBOOK [BookName] [language1] [language2] [description] \n - EXIT \n - HELP '
+    first = True
+    while True:
+        if first:
+            command = input(
+                '\nEnter one of the following commands: ' + commands + '\n').strip()
+            first = False
+        else:
+            command = input('\nEnter a command, or type HELP for a list of commands. \n').strip()
+        parts = command.split()
 
-    results = db.query_by_vocab('ENSP', 'man')
+        if parts[0] == 'ADD' and len(parts) >= 5:
+            book_name = parts[1]
+            vocab_language1 = parts[2]
+            vocab_language2 = parts[3]
+            definition = ' '.join(parts[4:])
+            db.add_vocab(book_name, vocab_language1, vocab_language2, definition)
 
-    db.close()
+        elif parts[0] == 'QBOOKS':
+            db.get_books()
+
+        elif parts[0] == 'Q' and len(parts) >= 3:
+            book_name = parts[1]
+            vocab = parts[2]
+            db.query_by_vocab(book_name, vocab)
+
+        elif parts[0] == 'ADDBOOK' and len(parts) >= 5:
+            book_name = parts[1]
+            language1 = parts[2]
+            language2 = parts[3]
+            description = ' '.join(parts[4:])
+            db.add_book(book_name, language1, language2, description)
+
+        elif parts[0] == 'HELP':
+            print(commands)
+
+        elif parts[0] == 'EXIT':
+            db.close()
+            print('Exiting...')
+            break
+
+        else:
+            print('Invalid command. Type HELP for a list of commands. \n')
+
+
+if __name__ == "__main__":
+    main()
