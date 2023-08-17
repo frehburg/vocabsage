@@ -69,14 +69,14 @@ class VocabularyDatabase:
         cursor = self.conn.cursor()
         book_id = self.get_book_id(book_name)
         cursor.execute('''
-            SELECT vocab_language1, vocab_language2, definition
+            SELECT Vocab_ID, vocab_language1, vocab_language2, definition
             FROM Vocabulary
             WHERE Book_ID = ? AND (vocab_language1 LIKE ? OR vocab_language2 LIKE ?)
         ''', (book_id, f'%{vocab_term}%', f'%{vocab_term}%'))
 
         results = cursor.fetchall()
 
-        cursor.execute('''SELECT language1, language2, 'Definition' AS definition FROM Books WHERE Book_ID = ?''', (book_id,))
+        cursor.execute('''SELECT 'Vocab_ID', language1, language2, 'Definition' FROM Books WHERE Book_ID = ?''', (book_id,))
         column_names = cursor.fetchall()
 
         return self.results_to_df(column_names, results)
@@ -91,7 +91,7 @@ class VocabularyDatabase:
         df = pd.DataFrame(results, columns=column_names)
         if verbose:
             if results:
-                print(df)
+                print(df.to_string(index=False))
             else:
                 print("No results found.")
         return results
