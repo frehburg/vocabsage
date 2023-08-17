@@ -83,7 +83,12 @@ class VocabularyDatabase:
 
 
     def results_to_df(self, column_names=[], results=[], verbose=True):
-        df = pd.DataFrame(results, columns=column_names[0])
+        if not len(column_names) == 0:
+            column_names = column_names[0]
+        else:
+            column_names = [f'Column {i}' for i in range(len(results[0]))]
+
+        df = pd.DataFrame(results, columns=column_names)
         if verbose:
             if results:
                 print(df)
@@ -105,7 +110,7 @@ class VocabularyDatabase:
 def main():
     db = VocabularyDatabase()
 
-    commands = '\n - ADD [BookName] [vocab_language1] [vocab_language2] [definition] \n - Q [BookName] [vocab] ' \
+    commands = '\n - ADD [BookName] - [vocab_language1] - [vocab_language2] - [definition] \n - Q [BookName] [vocab] ' \
                '\n - QBOOKS \n - ADDBOOK [BookName] [language1] [language2] [description] \n - EXIT \n - HELP '
     first = True
     while True:
@@ -118,6 +123,9 @@ def main():
         parts = command.split()
 
         if parts[0] == 'ADD' and len(parts) >= 5:
+            input_data = ' '.join(parts[1:])  # Combine all parts except the command
+            parts = [p.strip() for p in input_data.split('-')]
+
             book_name = parts[1]
             vocab_language1 = parts[2]
             vocab_language2 = parts[3]
