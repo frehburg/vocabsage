@@ -1,6 +1,6 @@
 import sqlite3
 import os
-#import pandas as pd
+import pandas as pd
 
 class VocabularyDatabase:
     def __init__(self):
@@ -47,7 +47,6 @@ class VocabularyDatabase:
         cursor = self.conn.cursor()
         cursor.execute('''SELECT Book_ID FROM Books WHERE name = ?''', (book_name,))
         book_id = cursor.fetchone()[0]
-        print(f'Book ID for {book_name}: {book_id}')
         return book_id
 
     def add_vocab(self, book_name, vocab_language1, vocab_language2, definition=''):
@@ -61,9 +60,9 @@ class VocabularyDatabase:
                 VALUES (?, ?, ?, ?)
             ''', (book_id, vocab_language1, vocab_language2, definition))
             self.conn.commit()
-            print("Vocabulary added successfully.")
+            print(f'Vocabulary ({vocab_language1} - {vocab_language2}) added successfully to {book_name}.')
         else:
-            print("Book not found.")
+            print('Book not found.')
 
     def query_by_vocab(self, book_name, vocab_term):
         cursor = self.conn.cursor()
@@ -82,8 +81,13 @@ class VocabularyDatabase:
         return self.results_to_df(column_names, results)
 
 
-    def results_to_df(self, column_names, results):
-        print(f'Column names: {list(column_names[0])}')
+    def results_to_df(self, column_names, results, verbose=True):
+        df = pd.DataFrame(results, columns=column_names[0])
+        if verbose:
+            if results:
+                print(df)
+            else:
+                print("No results found.")
         return results
 
 
@@ -102,11 +106,5 @@ if __name__ == '__main__':
     db.add_vocab('ENSP', 'dog', 'perro')
 
     results = db.query_by_vocab('ENSP', 'man')
-    if results:
-        print(f'Results for "manzana":')
-        for result in results:
-            print(result)
-    else:
-        print(f'No results found for "manzana"')
 
     db.close()
