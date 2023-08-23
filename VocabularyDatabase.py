@@ -135,7 +135,7 @@ def main():
             definition = ' '.join(parts[3:])
             db.add_vocab(book_name, vocab_language1, vocab_language2, definition)
 
-        if parts[0] == 'ADDD' and len(parts) >= 5:
+        elif parts[0] == 'ADDD' and len(parts) >= 5:
             input_data = ' '.join(parts[1:])  # Combine all parts except the command
             parts = [p.strip() for p in input_data.split('-')]
 
